@@ -1,4 +1,4 @@
-﻿name: Deploy website to DreamHost
+name: Deploy website to DreamHost
 
 on:
   push:
@@ -42,32 +42,18 @@ jobs:
           if [ -z "$SFTP_PORT" ]; then echo "SFTP_PORT is not set"; exit 1; fi
           if [ -z "$SFTP_TARGET" ]; then echo "SFTP_TARGET is not set"; exit 1; fi
 
-      - name: Validate DreamHost web root
-        env:
-          SFTP_TARGET: ${{ secrets.SFTP_TARGET }}
-        run: |
-          if [ "$SFTP_TARGET" = "/home/dh_zukpha/leftlevel.org/" ]; then exit 0; fi
-          if [ "$SFTP_TARGET" = "/home/dh_zukpha/leftlevel.org" ]; then exit 0; fi
-          echo "SFTP_TARGET must be /home/dh_zukpha/leftlevel.org/"
-          exit 1
-
       - name: Build clean deploy folder
         run: |
           rm -rf public
           mkdir -p public
 
-          # Copy all root-level website HTML pages automatically.
           find . -maxdepth 1 -type f -name "*.html" -exec cp {} public/ \;
 
-          # Copy root-level static support files when present.
-          for f in styles.css .htaccess robots.txt sitemap.xml site.webmanifest; do
+          for f in styles.css .htaccess robots.txt sitemap.xml site.webmanifest CNAME; do
             if [ -f "$f" ]; then cp "$f" public/; fi
           done
 
-          # Copy asset/document folders when present.
           if [ -d assets ]; then cp -R assets public/assets; fi
-          if [ -d docs ]; then cp -R docs public/docs; fi
-          if [ -d blog ]; then cp -R blog public/blog; fi
 
           if [ ! -f public/index.html ]; then echo "public/index.html was not created"; exit 1; fi
           if [ ! -f public/vision.html ]; then echo "public/vision.html was not created"; exit 1; fi
@@ -84,9 +70,9 @@ jobs:
           if find public -name "*.p12" -print -quit | grep -q .; then echo "Deploy folder contains .p12 files"; exit 1; fi
           if find public -name "*.pfx" -print -quit | grep -q .; then echo "Deploy folder contains .pfx files"; exit 1; fi
           if find public -name "*.key" -print -quit | grep -q .; then echo "Deploy folder contains .key files"; exit 1; fi
-          if grep -RIE "(AKIA|ASIA)[A-Z0-9]{16}|aws_secret_access_key[[:space:]]*=|secret_access_key[[:space:]]*=|session_token[[:space:]]*=|database_password[[:space:]]*=|-----BEGIN .*PRIVATE KEY-----" public; then echo "Deploy folder contains possible secret material"; exit 1; fi
+          if grep -RIE "(AKIA|ASIA)[A-Z0-9]{16}|aws_secret_access_key[[:space:]]*=|secret_access_key[[:space:]]*=|session_token[[:space:]]*=|database_password[[:space:]]*=|-----BEGIN .*PRIVATE KEY-----|/home/dh_[A-Za-z0-9_]+/" public; then echo "Deploy folder contains possible secret material"; exit 1; fi
 
-      - name: Check remote DreamHost target
+      - name: Check remote target
         env:
           SFTP_HOST: ${{ secrets.SFTP_HOST }}
           SFTP_USERNAME: ${{ secrets.SFTP_USERNAME }}
@@ -95,9 +81,9 @@ jobs:
           SFTP_TARGET: ${{ secrets.SFTP_TARGET }}
           SSHPASS: ${{ secrets.SFTP_PASSWORD }}
         run: |
-          sshpass -e ssh -p "$SFTP_PORT" -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -o ConnectTimeout=30 -o ServerAliveInterval=15 -o ServerAliveCountMax=4 "$SFTP_USERNAME@$SFTP_HOST" "mkdir -p '$SFTP_TARGET' && ls -lad '$SFTP_TARGET'"
+          sshpass -e ssh -p "$SFTP_PORT" -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -o ConnectTimeout=30 -o ServerAliveInterval=15 -o ServerAliveCountMax=4 "$SFTP_USERNAME@$SFTP_HOST" "mkdir -p '$SFTP_TARGET' && test -d '$SFTP_TARGET'"
 
-      - name: Deploy public folder to DreamHost
+      - name: Deploy public folder
         env:
           SFTP_HOST: ${{ secrets.SFTP_HOST }}
           SFTP_USERNAME: ${{ secrets.SFTP_USERNAME }}
@@ -113,4 +99,3 @@ jobs:
           sleep 10
           curl -fI https://leftlevel.org/ || exit 1
           curl -fI https://leftlevel.org/vision.html || exit 1
-
