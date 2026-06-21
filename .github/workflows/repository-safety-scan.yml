@@ -1,0 +1,122 @@
+name: Repository safety scan
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  safety-scan:
+    name: Block private or generated files
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Scan repository for unsafe files and secret-like content
+        run: |
+          python3 <<'PY'
+          from pathlib import Path
+          import re
+          import sys
+
+          root = Path('.')
+          failures = []
+
+          blocked_file_patterns = [
+              re.compile(r'(^|/)\.env($|\.)'),
+              re.compile(r'(^|/)\.leftlevel-internal(/|$)'),
+              re.compile(r'(^|/)public(/|$)'),
+              re.compile(r'(^|/)dist(/|$)'),
+              re.compile(r'(^|/)build(/|$)'),
+              re.compile(r'(^|/)FILE_INVENTORY\.txt$'),
+              re.compile(r'(^|/)README_DEPLOYMENT\.md$'),
+              re.compile(r'(^|/)RELEASE_NOTES.*\.md$'),
+              re.compile(r'(^|/)deploy-probe-.*\.(txt|html)$'),
+              re.compile(r'(^|/)contact\.php$'),
+              re.compile(r'.*\.zip$'),
+              re.compile(r'.*\.(pem|p12|pfx|key)$'),
+              re.compile(r'(^|/)id_rsa$'),
+              re.compile(r'(^|/)id_ed25519$'),
+              re.compile(r'(^|/)\.npmrc$'),
+              re.compile(r'(^|/)\.netrc$'),
+          ]
+
+          secret_patterns = [
+              ('private key block', re.compile(r'-----BEGIN [A-Z ]*PRIVATE KEY-----')),
+              ('aws access key id', re.compile(r'\b(AKIA|ASIA)[A-Z0-9]{16}\b')),
+              ('github token', re.compile(r'\bgh[pousr]_[A-Za-z0-9_]{20,}\b')),
+              ('github fine-grained token', re.compile(r'\bgithub_pat_[A-Za-z0-9_]{20,}\b')),
+              ('slack token', re.compile(r'\bxox[baprs]-[A-Za-z0-9-]{10,}\b')),
+              ('dreamhost account path', re.compile(r'/home/dh_[A-Za-z0-9_]+/')),
+              ('password assignment', re.compile(r'(?i)\b(password|passwd|pwd|secret|token|api[_-]?key|private[_-]?key)\b\s*[:=]\s*["\']?[^\s"\'${}][^\n"\']{7,}')),
+          ]
+
+          allowed_text_fragments = [
+              'secrets.SFTP_HOST',
+              'secrets.SFTP_USERNAME',
+              'secrets.SFTP_PASSWORD',
+              'secrets.SFTP_PORT',
+              'secrets.SFTP_TARGET',
+              'SFTP_PASSWORD',
+              'SFTP_TARGET',
+              'SFTP_USERNAME',
+              'SFTP_HOST',
+              'SFTP_PORT',
+          ]
+
+          def is_binary(path: Path) -> bool:
+              try:
+                  chunk = path.read_bytes()[:4096]
+              except Exception:
+                  return True
+              return b'\0' in chunk
+
+          for path in root.rglob('*'):
+              if '.git' in path.parts:
+                  continue
+              if path.is_dir():
+                  continue
+
+              rel = path.as_posix().lstrip('./')
+
+              for pattern in blocked_file_patterns:
+                  if pattern.match(rel):
+                      failures.append(f'Blocked file/path: {rel}')
+
+              if is_binary(path):
+                  continue
+
+              try:
+                  text = path.read_text(encoding='utf-8', errors='ignore')
+              except Exception:
+                  continue
+
+              for label, pattern in secret_patterns:
+                  for match in pattern.finditer(text):
+                      line_start = text.rfind('\n', 0, match.start()) + 1
+                      line_end = text.find('\n', match.end())
+                      if line_end == -1:
+                          line_end = len(text)
+                      line = text[line_start:line_end]
+
+                      if any(fragment in line for fragment in allowed_text_fragments):
+                          continue
+
+                      failures.append(f'Possible {label} in {rel}: {line[:160]}')
+
+          if failures:
+              print('Repository safety scan failed. Review these items before merging or deploying:')
+              for item in failures:
+                  print(f'- {item}')
+              sys.exit(1)
+
+          print('Repository safety scan passed.')
+          PY
