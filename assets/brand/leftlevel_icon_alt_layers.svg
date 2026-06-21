@@ -1,0 +1,15 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="128" height="128" viewBox="0 0 128 128" role="img" aria-label="LeftLevel layered mark">
+<defs>
+  <radialGradient id="ll-bg" cx="50%" cy="35%" r="80%"><stop offset="0" stop-color="#12324A"/><stop offset="1" stop-color="#050A14"/></radialGradient>
+  <linearGradient id="ll-cyan" x1="12" y1="22" x2="110" y2="100" gradientUnits="userSpaceOnUse"><stop offset="0" stop-color="#67E8F9"/><stop offset=".5" stop-color="#22D3EE"/><stop offset="1" stop-color="#2DD4BF"/></linearGradient>
+  <filter id="ll-glow" x="-45%" y="-45%" width="190%" height="190%"><feGaussianBlur stdDeviation="4.5" result="b"/><feColorMatrix in="b" type="matrix" values="0 0 0 0 0.13 0 0 0 0 0.83 0 0 0 0 0.93 0 0 0 .48 0" result="c"/><feMerge><feMergeNode in="c"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+</defs>
+<rect width="128" height="128" rx="30" fill="url(#ll-bg)"/>
+<g filter="url(#ll-glow)">
+  <path d="M33 33H103L92 49H22L14 41L22 33H33Z" fill="url(#ll-cyan)"/>
+  <path d="M31 59H93L82 75H20L11 67L20 59H31Z" fill="#38BDF8" opacity=".72"/>
+  <path d="M33 85H103L92 101H22L14 93L22 85H33Z" fill="#2DD4BF"/>
+  <path d="M48 49H84L72 59H36L48 49Z" fill="#E5F0FF" opacity=".38"/>
+  <path d="M48 75H84L72 85H36L48 75Z" fill="#E5F0FF" opacity=".28"/>
+</g>
+</svg>

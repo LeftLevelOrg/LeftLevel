@@ -1,0 +1,15 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="360" height="96" viewBox="0 0 360 96" role="img" aria-labelledby="title desc">
+<title id="title">LeftLevel</title><desc id="desc">LeftLevel layered level mark and wordmark</desc>
+<defs>
+  <linearGradient id="ll-cyan" x1="10" y1="20" x2="84" y2="77" gradientUnits="userSpaceOnUse"><stop offset="0" stop-color="#67E8F9"/><stop offset=".5" stop-color="#22D3EE"/><stop offset="1" stop-color="#2DD4BF"/></linearGradient>
+  <filter id="ll-glow" x="-45%" y="-45%" width="190%" height="190%"><feGaussianBlur stdDeviation="3.4" result="b"/><feColorMatrix in="b" type="matrix" values="0 0 0 0 0.13 0 0 0 0 0.83 0 0 0 0 0.93 0 0 0 .48 0" result="c"/><feMerge><feMergeNode in="c"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+</defs>
+<g transform="translate(7 13)" filter="url(#ll-glow)">
+  <path d="M25 16H72L64 27H16L10 22L16 16H25Z" fill="url(#ll-cyan)"/>
+  <path d="M23 35H66L58 47H14L7 41L14 35H23Z" fill="#38BDF8" opacity=".75"/>
+  <path d="M25 55H72L64 67H16L10 61L16 55H25Z" fill="#2DD4BF"/>
+  <path d="M36 27H60L51 35H27L36 27Z" fill="#E5F0FF" opacity=".36"/>
+  <path d="M36 47H60L51 55H27L36 47Z" fill="#E5F0FF" opacity=".26"/>
+</g>
+<text x="96" y="61" fill="#E5F0FF" font-family="Inter, ui-sans-serif, Segoe UI, Arial, sans-serif" font-size="42" font-weight="850" letter-spacing="-1.6">LeftLevel</text>
+</svg>

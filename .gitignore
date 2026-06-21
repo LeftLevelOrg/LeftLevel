@@ -1,0 +1,36 @@
+﻿# LeftLevel repository hygiene
+# Do NOT ignore .htaccess. DreamHost needs it.
+
+/.leftlevel-internal/
+/public/
+/dist/
+/build/
+
+# Local/generated packages
+/leftlevel-site-*.zip
+/leftlevel-v*-patch*.zip
+/leftlevel-vision-hotfix-*.zip
+/leftlevel-github-org-profile.zip
+/*.zip
+
+# Local notes and generated reports
+/FILE_INVENTORY.txt
+/README_DEPLOYMENT.md
+/RELEASE_NOTES*.md
+
+# Deploy probes
+/deploy-probe-*.txt
+/deploy-probe-*.html
+
+# Local environment and logs
+.env
+.env.*
+*.log
+
+# OS junk
+.DS_Store
+Thumbs.db
+__MACOSX/
+
+# Removed legacy handler
+/contact.php

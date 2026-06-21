@@ -1,0 +1,110 @@
+{
+  "cleanUrls": false,
+  "trailingSlash": false,
+  "rewrites": [
+    {
+      "src": "/vision/?",
+      "dest": "/vision/index.html"
+    },
+    {
+      "src": "/vision\\.html",
+      "dest": "/vision/index.html"
+    },
+    {
+      "src": "/roadmap/?",
+      "dest": "/roadmap/index.html"
+    },
+    {
+      "src": "/roadmap\\.html",
+      "dest": "/roadmap/index.html"
+    },
+    {
+      "src": "/docs/?",
+      "dest": "/docs/index.html"
+    },
+    {
+      "src": "/docs\\.html",
+      "dest": "/docs/index.html"
+    },
+    {
+      "src": "/developers/?",
+      "dest": "/developers/index.html"
+    },
+    {
+      "src": "/developers\\.html",
+      "dest": "/developers/index.html"
+    },
+    {
+      "src": "/about/?",
+      "dest": "/about/index.html"
+    },
+    {
+      "src": "/about\\.html",
+      "dest": "/about/index.html"
+    },
+    {
+      "src": "/projects/?",
+      "dest": "/projects/index.html"
+    },
+    {
+      "src": "/projects\\.html",
+      "dest": "/projects/index.html"
+    },
+    {
+      "src": "/blog/?",
+      "dest": "/blog/index.html"
+    },
+    {
+      "src": "/blog\\.html",
+      "dest": "/blog/index.html"
+    },
+    {
+      "src": "/privacy/?",
+      "dest": "/privacy/index.html"
+    },
+    {
+      "src": "/privacy\\.html",
+      "dest": "/privacy/index.html"
+    },
+    {
+      "src": "/insights/?",
+      "dest": "/insights/index.html"
+    },
+    {
+      "src": "/insights\\.html",
+      "dest": "/insights/index.html"
+    },
+    {
+      "src": "/support/?",
+      "dest": "/support/index.html"
+    },
+    {
+      "src": "/support\\.html",
+      "dest": "/support/index.html"
+    },
+    {
+      "src": "/contact/?",
+      "dest": "/contact/index.html"
+    },
+    {
+      "src": "/contact\\.html",
+      "dest": "/contact/index.html"
+    },
+    {
+      "src": "/connect/?",
+      "dest": "/connect/index.html"
+    },
+    {
+      "src": "/connect\\.html",
+      "dest": "/connect/index.html"
+    },
+    {
+      "src": "/thank-you/?",
+      "dest": "/thank-you/index.html"
+    },
+    {
+      "src": "/thank-you\\.html",
+      "dest": "/thank-you/index.html"
+    }
+  ]
+}

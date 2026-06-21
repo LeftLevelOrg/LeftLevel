@@ -1,0 +1,116 @@
+﻿name: Deploy website to DreamHost
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: dreamhost-sftp-deploy
+  cancel-in-progress: true
+
+jobs:
+  deploy:
+    name: Deploy static website
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Install deploy tools
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y rsync sshpass
+
+      - name: Validate required secrets
+        env:
+          SFTP_HOST: ${{ secrets.SFTP_HOST }}
+          SFTP_USERNAME: ${{ secrets.SFTP_USERNAME }}
+          SFTP_PASSWORD: ${{ secrets.SFTP_PASSWORD }}
+          SFTP_PORT: ${{ secrets.SFTP_PORT }}
+          SFTP_TARGET: ${{ secrets.SFTP_TARGET }}
+        run: |
+          if [ -z "$SFTP_HOST" ]; then echo "SFTP_HOST is not set"; exit 1; fi
+          if [ -z "$SFTP_USERNAME" ]; then echo "SFTP_USERNAME is not set"; exit 1; fi
+          if [ -z "$SFTP_PASSWORD" ]; then echo "SFTP_PASSWORD is not set"; exit 1; fi
+          if [ -z "$SFTP_PORT" ]; then echo "SFTP_PORT is not set"; exit 1; fi
+          if [ -z "$SFTP_TARGET" ]; then echo "SFTP_TARGET is not set"; exit 1; fi
+
+      - name: Validate DreamHost web root
+        env:
+          SFTP_TARGET: ${{ secrets.SFTP_TARGET }}
+        run: |
+          if [ "$SFTP_TARGET" = "/home/dh_zukpha/leftlevel.org/" ]; then exit 0; fi
+          if [ "$SFTP_TARGET" = "/home/dh_zukpha/leftlevel.org" ]; then exit 0; fi
+          echo "SFTP_TARGET must be /home/dh_zukpha/leftlevel.org/"
+          exit 1
+
+      - name: Build clean deploy folder
+        run: |
+          rm -rf public
+          mkdir -p public
+
+          # Copy all root-level website HTML pages automatically.
+          find . -maxdepth 1 -type f -name "*.html" -exec cp {} public/ \;
+
+          # Copy root-level static support files when present.
+          for f in styles.css .htaccess robots.txt sitemap.xml site.webmanifest; do
+            if [ -f "$f" ]; then cp "$f" public/; fi
+          done
+
+          # Copy asset/document folders when present.
+          if [ -d assets ]; then cp -R assets public/assets; fi
+          if [ -d docs ]; then cp -R docs public/docs; fi
+          if [ -d blog ]; then cp -R blog public/blog; fi
+
+          if [ ! -f public/index.html ]; then echo "public/index.html was not created"; exit 1; fi
+          if [ ! -f public/vision.html ]; then echo "public/vision.html was not created"; exit 1; fi
+
+          echo "Deploy folder contents:"
+          find public -maxdepth 2 -type f | sort
+
+      - name: Validate no obvious secrets in deploy folder
+        run: |
+          if find public -name ".env" -print -quit | grep -q .; then echo "Deploy folder contains .env"; exit 1; fi
+          if find public -name ".env.*" -print -quit | grep -q .; then echo "Deploy folder contains .env.*"; exit 1; fi
+          if find public -name "*.llh.vault" -print -quit | grep -q .; then echo "Deploy folder contains vault files"; exit 1; fi
+          if find public -name "*.pem" -print -quit | grep -q .; then echo "Deploy folder contains .pem files"; exit 1; fi
+          if find public -name "*.p12" -print -quit | grep -q .; then echo "Deploy folder contains .p12 files"; exit 1; fi
+          if find public -name "*.pfx" -print -quit | grep -q .; then echo "Deploy folder contains .pfx files"; exit 1; fi
+          if find public -name "*.key" -print -quit | grep -q .; then echo "Deploy folder contains .key files"; exit 1; fi
+          if grep -RIE "(AKIA|ASIA)[A-Z0-9]{16}|aws_secret_access_key[[:space:]]*=|secret_access_key[[:space:]]*=|session_token[[:space:]]*=|database_password[[:space:]]*=|-----BEGIN .*PRIVATE KEY-----" public; then echo "Deploy folder contains possible secret material"; exit 1; fi
+
+      - name: Check remote DreamHost target
+        env:
+          SFTP_HOST: ${{ secrets.SFTP_HOST }}
+          SFTP_USERNAME: ${{ secrets.SFTP_USERNAME }}
+          SFTP_PASSWORD: ${{ secrets.SFTP_PASSWORD }}
+          SFTP_PORT: ${{ secrets.SFTP_PORT }}
+          SFTP_TARGET: ${{ secrets.SFTP_TARGET }}
+          SSHPASS: ${{ secrets.SFTP_PASSWORD }}
+        run: |
+          sshpass -e ssh -p "$SFTP_PORT" -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -o ConnectTimeout=30 -o ServerAliveInterval=15 -o ServerAliveCountMax=4 "$SFTP_USERNAME@$SFTP_HOST" "mkdir -p '$SFTP_TARGET' && ls -lad '$SFTP_TARGET'"
+
+      - name: Deploy public folder to DreamHost
+        env:
+          SFTP_HOST: ${{ secrets.SFTP_HOST }}
+          SFTP_USERNAME: ${{ secrets.SFTP_USERNAME }}
+          SFTP_PASSWORD: ${{ secrets.SFTP_PASSWORD }}
+          SFTP_PORT: ${{ secrets.SFTP_PORT }}
+          SFTP_TARGET: ${{ secrets.SFTP_TARGET }}
+          SSHPASS: ${{ secrets.SFTP_PASSWORD }}
+        run: |
+          sshpass -e rsync -avz --delete --exclude='.well-known/' --timeout=300 -e "ssh -p $SFTP_PORT -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -o ConnectTimeout=30 -o ServerAliveInterval=15 -o ServerAliveCountMax=4" public/ "$SFTP_USERNAME@$SFTP_HOST:$SFTP_TARGET/"
+
+      - name: Verify live pages
+        run: |
+          sleep 10
+          curl -fI https://leftlevel.org/ || exit 1
+          curl -fI https://leftlevel.org/vision.html || exit 1
+

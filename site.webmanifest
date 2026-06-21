@@ -1,0 +1,16 @@
+{
+  "name": "LeftLevel",
+  "short_name": "LeftLevel",
+  "description": "Private communication designed for resilience.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#050A14",
+  "theme_color": "#050A14",
+  "icons": [
+    {
+      "src": "/assets/brand/leftlevel_icon.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ]
+}
