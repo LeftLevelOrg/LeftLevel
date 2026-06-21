@@ -1,7 +1,13 @@
-﻿# LeftLevel repository hygiene
+# LeftLevel repository hygiene
 # Do NOT ignore .htaccess. DreamHost needs it.
 
+# Private/local workspaces
 /.leftlevel-internal/
+/private/
+/internal/
+/secrets/
+
+# Build and deploy output
 /public/
 /dist/
 /build/
@@ -12,25 +18,37 @@
 /leftlevel-vision-hotfix-*.zip
 /leftlevel-github-org-profile.zip
 /*.zip
+*.zip
 
 # Local notes and generated reports
 /FILE_INVENTORY.txt
 /README_DEPLOYMENT.md
 /RELEASE_NOTES*.md
+*.bak
+*.tmp
+*.temp
 
-# Deploy probes
+# Deploy probes and old handlers
 /deploy-probe-*.txt
 /deploy-probe-*.html
+/contact.php
 
-# Local environment and logs
+# Local environment, credentials, and logs
 .env
 .env.*
 *.log
+*.pem
+*.p12
+*.pfx
+*.key
+id_rsa
+id_ed25519
+.npmrc
+.netrc
 
-# OS junk
+# OS/editor junk
 .DS_Store
 Thumbs.db
 __MACOSX/
-
-# Removed legacy handler
-/contact.php
+.vscode/
+.idea/
